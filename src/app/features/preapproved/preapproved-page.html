@@ -1,0 +1,81 @@
+<header class="page-header">
+  <div>
+    <h1>المعتمدون مسبقًا</h1>
+    <p class="muted">أرقام هوية تُقبل تلقائيًا عند التسجيل إذا تطابقت بياناتها</p>
+  </div>
+  <button type="button" class="btn btn--primary" (click)="formTarget.set(null)">
+    <app-icon name="plus" /> إضافة
+  </button>
+</header>
+
+<section class="card">
+  <div class="toolbar">
+    <app-filter-tabs [options]="tabs" [value]="filter()" (valueChange)="setFilter($event)" />
+    <app-search-box placeholder="بحث برقم الهوية أو الاسم أو الجوال" (search)="setSearch($event)" />
+  </div>
+
+  @if (list.error(); as error) {
+    <div class="alert alert--error">
+      {{ error }}
+      <button type="button" class="btn btn--ghost btn--sm" (click)="list.reload()">إعادة المحاولة</button>
+    </div>
+  }
+
+  <div class="table-wrap" [class.is-loading]="list.loading()">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>رقم الهوية</th>
+          <th>الاسم</th>
+          <th>الجوال</th>
+          <th>تاريخ الميلاد</th>
+          <th>ملاحظة</th>
+          <th>{{ filter() === 'consumed' ? 'تاريخ التسجيل' : 'أضافه' }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of list.items(); track entry.id) {
+          <tr>
+            <td class="mono">{{ entry.nationalId }}</td>
+            <td>{{ entry.fullName ?? '—' }}</td>
+            <td class="mono" dir="ltr">{{ entry.phone ?? '—' }}</td>
+            <td>{{ entry.dateOfBirth ?? '—' }}</td>
+            <td>{{ entry.note ?? '—' }}</td>
+            @if (entry.consumed) {
+              <td>{{ entry.consumedAt | riyadhDate }}</td>
+              <td>
+                @if (entry.consumedByUserId) {
+                  <a class="btn btn--ghost btn--sm" [routerLink]="['/members', entry.consumedByUserId]">صفحة العضو</a>
+                }
+              </td>
+            } @else {
+              <td>
+                {{ entry.createdBy?.fullName ?? '—' }}
+                <span class="muted block">{{ entry.createdAt | riyadhDate: 'date' }}</span>
+              </td>
+              <td class="table__actions">
+                <button type="button" class="icon-btn" title="تعديل" aria-label="تعديل" (click)="formTarget.set(entry)">
+                  <app-icon name="edit" />
+                </button>
+                <button type="button" class="icon-btn text-danger" title="حذف" aria-label="حذف" (click)="remove(entry)">
+                  <app-icon name="trash" />
+                </button>
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty">{{ list.loading() ? 'جارٍ التحميل...' : 'لا توجد سجلات' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination [pagination]="list.pagination()" (pageChange)="list.load($event)" />
+</section>
+
+@if (formTarget() !== undefined) {
+  <app-preapproved-form [entry]="formTarget() ?? null" (saved)="onSaved()" (closed)="formTarget.set(undefined)" />
+}

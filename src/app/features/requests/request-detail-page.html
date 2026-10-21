@@ -1,0 +1,72 @@
+<a routerLink="/requests" class="back-link"><app-icon name="back" /> طلبات الانضمام</a>
+
+@if (error(); as error) {
+  <div class="alert alert--error">{{ error }}</div>
+}
+
+@if (request(); as r) {
+  <section class="card profile">
+    <app-avatar [src]="r.user.photoUrl" [name]="r.user.fullName" [size]="96" />
+
+    <div class="profile__main">
+      <div class="profile__title">
+        <h1>{{ r.user.fullName }}</h1>
+        <app-status-badge [status]="r.status" />
+        @if (r.autoApproved) {
+          <span class="tag">قبول تلقائي (معتمد مسبقًا)</span>
+        }
+      </div>
+      <p class="muted">قُدّم الطلب في {{ r.createdAt | riyadhDate }}</p>
+
+      @if (r.reviewedAt) {
+        <p class="note">
+          {{ r.status === 'ACCEPTED' ? 'قبله' : 'رفضه' }} {{ r.reviewedBy?.fullName ?? 'النظام' }}
+          في {{ r.reviewedAt | riyadhDate }}
+          @if (r.decisionReason) {
+            <br />السبب: {{ r.decisionReason }}
+          }
+        </p>
+      }
+
+      <div class="profile__actions">
+        @if (r.status === 'PENDING') {
+          <button type="button" class="btn btn--primary" (click)="open('approve')">
+            <app-icon name="check" /> قبول
+          </button>
+          <button type="button" class="btn btn--danger" (click)="open('reject')">
+            <app-icon name="close" /> رفض
+          </button>
+        }
+        <a class="btn btn--ghost" [routerLink]="['/members', r.user.id]">صفحة العضو</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card__title">بيانات مقدم الطلب</h2>
+    <app-user-info [user]="r.user" />
+  </section>
+} @else if (!error()) {
+  <p class="empty">جارٍ التحميل...</p>
+}
+
+@if (decision(); as kind) {
+  <app-modal [title]="kind === 'approve' ? 'قبول الطلب' : 'رفض الطلب'" (closed)="close()">
+    <div class="form">
+      <label class="field">
+        <span>{{ kind === 'approve' ? 'ملاحظة (اختيارية)' : 'سبب الرفض' }}</span>
+        <textarea class="input" rows="3" [formControl]="reason" maxlength="500"></textarea>
+        @if (kind === 'reject') {
+          <small class="muted">يُستحسن كتابة السبب، فهو يظهر للمستخدم في التطبيق. الرفض يسجّل خروجه من كل أجهزته.</small>
+        }
+      </label>
+      <div class="form__actions">
+        <button type="button" [class]="kind === 'approve' ? 'btn btn--primary' : 'btn btn--danger'"
+                [disabled]="saving()" (click)="confirm()">
+          {{ kind === 'approve' ? 'تأكيد القبول' : 'تأكيد الرفض' }}
+        </button>
+        <button type="button" class="btn btn--ghost" (click)="close()">إلغاء</button>
+      </div>
+    </div>
+  </app-modal>
+}

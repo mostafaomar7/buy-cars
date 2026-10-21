@@ -1,0 +1,56 @@
+<header class="page-header">
+  <div>
+    <h1>الرئيسية</h1>
+    <p class="muted">نظرة عامة على العضويات والطلبات</p>
+  </div>
+</header>
+
+<section class="stats">
+  @for (card of cards(); track card.label) {
+    <a class="stat" [attr.data-tone]="card.tone" [routerLink]="card.link ?? null">
+      <span class="stat__value">{{ card.value }}</span>
+      <span class="stat__label">{{ card.label }}</span>
+    </a>
+  } @empty {
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div class="stat stat--skeleton"></div>
+    }
+  }
+</section>
+
+<div class="split">
+  <section class="card">
+    <header class="card__header">
+      <h2 class="card__title">آخر الطلبات المعلقة</h2>
+      <a routerLink="/requests" class="btn btn--ghost btn--sm">عرض الكل</a>
+    </header>
+
+    @if (pending.error(); as error) {
+      <div class="alert alert--error">{{ error }}</div>
+    }
+
+    <ul class="list">
+      @for (request of pending.items(); track request.id) {
+        <li>
+          <a class="list__item" [routerLink]="['/requests', request.id]">
+            <app-avatar [src]="request.user.photoUrl" [name]="request.user.fullName" />
+            <div class="list__text">
+              <strong>{{ request.user.fullName }}</strong>
+              <span class="muted mono">{{ request.user.nationalId }}</span>
+            </div>
+            <time class="muted">{{ request.createdAt | riyadhDate }}</time>
+          </a>
+        </li>
+      } @empty {
+        <li class="empty">{{ pending.loading() ? 'جارٍ التحميل...' : 'لا توجد طلبات معلقة 🎉' }}</li>
+      }
+    </ul>
+  </section>
+
+  <section class="card">
+    <header class="card__header">
+      <h2 class="card__title">الإشعارات اللحظية</h2>
+    </header>
+    <app-live-feed />
+  </section>
+</div>

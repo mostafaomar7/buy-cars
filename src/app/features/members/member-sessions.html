@@ -1,0 +1,70 @@
+<header class="card__header">
+  <h2 class="card__title">الأجهزة والجلسات</h2>
+  <div class="card__header-actions">
+    <label class="checkbox">
+      <input type="checkbox" [checked]="includeInactive()" (change)="toggleInactive($any($event.target).checked)" />
+      عرض المنتهية والملغاة
+    </label>
+    <button type="button" class="btn btn--danger btn--sm" [disabled]="busy() || activeCount() === 0"
+            (click)="logoutAll()">
+      <app-icon name="logout" /> تسجيل خروج من كل الأجهزة
+    </button>
+  </div>
+</header>
+
+@if (error(); as error) {
+  <div class="alert alert--error">{{ error }}</div>
+}
+
+<div class="table-wrap" [class.is-loading]="loading()">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>الجهاز</th>
+        <th>IP</th>
+        <th>تاريخ الدخول</th>
+        <th>آخر نشاط</th>
+        <th>الحالة</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (session of sessions(); track session.id) {
+        <tr>
+          <td>
+            <div class="person">
+              <span class="device-icon"><app-icon name="phone" /></span>
+              <div>
+                <strong>{{ session.deviceName ?? 'جهاز غير معروف' }}</strong>
+                <span class="muted">{{ session.platform ? platforms[session.platform] : '—' }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="mono" dir="ltr">{{ session.ipAddress ?? '—' }}</td>
+          <td>{{ session.createdAt | riyadhDate }}</td>
+          <td>{{ session.lastSeenAt | riyadhDate }}</td>
+          <td>
+            @if (session.active) {
+              <span class="badge badge--accepted">نشطة</span>
+            } @else if (session.revokedAt) {
+              <span class="badge badge--rejected" [title]="session.revokedReason ?? ''">ملغاة</span>
+            } @else {
+              <span class="badge badge--neutral">منتهية</span>
+            }
+          </td>
+          <td>
+            @if (session.active) {
+              <button type="button" class="btn btn--ghost btn--sm" [disabled]="busy()" (click)="revoke(session)">
+                إنهاء
+              </button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="empty">{{ loading() ? 'جارٍ التحميل...' : 'لا توجد جلسات نشطة' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

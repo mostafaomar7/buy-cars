@@ -1,0 +1,58 @@
+<app-modal [title]="entry() ? 'تعديل معتمد مسبقًا' : 'إضافة معتمد مسبقًا'" (closed)="closed.emit()">
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+    <p class="muted">
+      عندما يسجّل شخص بنفس رقم الهوية وتتطابق كل الحقول المدخلة، يُقبل تلقائيًا.
+    </p>
+
+    <div class="form__grid">
+      <label class="field">
+        <span>رقم الهوية *</span>
+        <input class="input mono" inputmode="numeric" formControlName="nationalId" />
+        @if (form.controls.nationalId.touched && form.controls.nationalId.invalid) {
+          <small class="field__error">رقم الهوية مطلوب</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>الاسم</span>
+        <input class="input" formControlName="fullName" />
+      </label>
+
+      <label class="field">
+        <span>الجوال</span>
+        <input class="input mono" type="tel" dir="ltr" formControlName="phone" placeholder="05xxxxxxxx" />
+      </label>
+
+      <label class="field">
+        <span>تاريخ الميلاد</span>
+        <input class="input" type="date" formControlName="dateOfBirth" />
+      </label>
+    </div>
+
+    <label class="field">
+      <span>ملاحظة</span>
+      <input class="input" formControlName="note" />
+    </label>
+
+    @if (weakMatch()) {
+      <div class="alert alert--warn">
+        <app-icon name="alert" />
+        <span>
+          لم تُدخل الجوال أو تاريخ الميلاد. بهذا الشكل أي شخص يعرف رقم الهوية يستطيع التسجيل به ويُقبل تلقائيًا.
+          إدخال أحدهما يزيد الأمان.
+        </span>
+      </div>
+    }
+
+    @if (error(); as error) {
+      <div class="alert alert--error">{{ error }}</div>
+    }
+
+    <div class="form__actions">
+      <button type="submit" class="btn btn--primary" [disabled]="saving()">
+        {{ saving() ? 'جارٍ الحفظ...' : 'حفظ' }}
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="closed.emit()">إلغاء</button>
+    </div>
+  </form>
+</app-modal>

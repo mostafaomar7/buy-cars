@@ -1,0 +1,101 @@
+<a routerLink="/members" class="back-link"><app-icon name="back" /> الأعضاء</a>
+
+@if (error(); as error) {
+  <div class="alert alert--error">{{ error }}</div>
+}
+
+@if (details(); as d) {
+  @let m = d.member;
+
+  <section class="card profile">
+    <div class="profile__photo">
+      <app-avatar [src]="m.photoUrl" [name]="m.fullName" [size]="96" />
+      <div class="profile__photo-actions">
+        <label class="btn btn--ghost btn--sm" [class.is-disabled]="photoBusy()">
+          <app-icon name="camera" /> {{ m.photoUrl ? 'تغيير' : 'رفع صورة' }}
+          <input type="file" accept="image/jpeg,image/png,image/webp" hidden
+                 [disabled]="photoBusy()" (change)="onPhotoSelected($event)" />
+        </label>
+        @if (m.photoUrl) {
+          <button type="button" class="btn btn--ghost btn--sm text-danger" [disabled]="photoBusy()"
+                  (click)="deletePhoto()">
+            <app-icon name="trash" /> حذف
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="profile__main">
+      <div class="profile__title">
+        <h1>{{ m.fullName }}</h1>
+        <app-status-badge [status]="m.membershipStatus" />
+      </div>
+      <p class="muted"><span dir="ltr">{{ m.email }}</span> · {{ d.activeSessions }} جلسة نشطة</p>
+      @if (m.statusReason) {
+        <p class="note">سبب الحالة: {{ m.statusReason }}</p>
+      }
+
+      <div class="profile__actions">
+        <button type="button" class="btn btn--primary" [disabled]="editing()" (click)="editing.set(true)">
+          <app-icon name="edit" /> تعديل البيانات
+        </button>
+        <button type="button" class="btn btn--outline" (click)="statusDialogOpen.set(true)">تغيير الحالة</button>
+        <a class="btn btn--ghost" routerLink="/audit-logs" [queryParams]="{ targetUserId: m.id }">
+          <app-icon name="history" /> سجل العمليات
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card__title">البيانات الشخصية</h2>
+    @if (editing()) {
+      <app-member-form [member]="m" (saved)="onSaved()" (cancelled)="editing.set(false)" />
+    } @else {
+      <app-user-info [user]="m" />
+    }
+  </section>
+
+  <app-member-sessions [userId]="m.id" (changed)="load()" />
+
+  <section class="card">
+    <h2 class="card__title">سجل طلبات الانضمام</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>تاريخ الطلب</th>
+            <th>الحالة</th>
+            <th>راجعه</th>
+            <th>تاريخ المراجعة</th>
+            <th>السبب</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (request of d.accessRequests; track request.id) {
+            <tr>
+              <td>{{ request.createdAt | riyadhDate }}</td>
+              <td>
+                <app-status-badge [status]="request.status" />
+                @if (request.autoApproved) {
+                  <span class="tag">تلقائي</span>
+                }
+              </td>
+              <td>{{ request.reviewedBy?.fullName ?? (request.reviewedAt ? 'النظام' : '—') }}</td>
+              <td>{{ request.reviewedAt | riyadhDate }}</td>
+              <td>{{ request.decisionReason ?? '—' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="empty">لا توجد طلبات</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  @if (statusDialogOpen()) {
+    <app-member-status-dialog [member]="m" (changed)="load()" (closed)="statusDialogOpen.set(false)" />
+  }
+} @else if (!error()) {
+  <p class="empty">جارٍ التحميل...</p>
+}

@@ -1,0 +1,71 @@
+<header class="page-header">
+  <div>
+    <h1>سجل العمليات</h1>
+    <p class="muted">كل ما قامت به الإدارة أو النظام</p>
+  </div>
+</header>
+
+<section class="card">
+  <div class="toolbar">
+    <label class="field field--inline">
+      <span>الإجراء</span>
+      <select class="input" [value]="action()" (change)="setAction($any($event.target).value)">
+        <option value="">كل الإجراءات</option>
+        @for (option of actions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </label>
+
+    @if (targetUserId()) {
+      <span class="tag">
+        مفلتر حسب عضو واحد
+        <a routerLink="/audit-logs">إزالة</a>
+      </span>
+    }
+  </div>
+
+  @if (list.error(); as error) {
+    <div class="alert alert--error">
+      {{ error }}
+      <button type="button" class="btn btn--ghost btn--sm" (click)="list.reload()">إعادة المحاولة</button>
+    </div>
+  }
+
+  <div class="table-wrap" [class.is-loading]="list.loading()">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>الإجراء</th>
+          <th>المنفّذ</th>
+          <th>العضو</th>
+          <th>التفاصيل</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (log of list.items(); track log.id) {
+          <tr>
+            <td class="nowrap">{{ log.createdAt | riyadhDate }}</td>
+            <td><span class="tag">{{ actionLabel(log.action) }}</span></td>
+            <td>{{ log.actorAdmin?.fullName ?? 'النظام' }}</td>
+            <td>
+              @if (log.targetUser; as target) {
+                <a [routerLink]="['/members', target.id]">{{ target.fullName }}</a>
+              } @else {
+                —
+              }
+            </td>
+            <td class="muted">{{ describe(log) }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty">{{ list.loading() ? 'جارٍ التحميل...' : 'لا توجد عمليات' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination [pagination]="list.pagination()" (pageChange)="list.load($event)" />
+</section>

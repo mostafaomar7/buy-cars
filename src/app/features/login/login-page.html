@@ -1,0 +1,45 @@
+<div class="login">
+  <section class="login__brand">
+    <div class="login__shapes" aria-hidden="true">
+      <span class="shape shape--a"></span>
+      <span class="shape shape--b"></span>
+      <span class="shape shape--c"></span>
+    </div>
+    <div class="login__brand-text">
+      <app-brand-mark [size]="56" />
+      <h1>لوحة إدارة العضويات</h1>
+      <p>مراجعة طلبات الانضمام، وإدارة الأعضاء والأجهزة، ومتابعة كل ما يحدث لحظة بلحظة.</p>
+    </div>
+  </section>
+
+  <section class="login__panel">
+    <form class="login__form" [formGroup]="form" (ngSubmit)="submit()">
+      <h2>تسجيل الدخول</h2>
+      <p class="muted">هذه اللوحة مخصصة لحسابات الإدارة فقط.</p>
+
+      <label class="field">
+        <span>البريد الإلكتروني</span>
+        <input class="input" type="text" dir="ltr" formControlName="identifier" autocomplete="username" />
+        @if (form.controls.identifier.touched && form.controls.identifier.invalid) {
+          <small class="field__error">أدخل البريد الإلكتروني</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>كلمة المرور</span>
+        <input class="input" type="password" dir="ltr" formControlName="password" autocomplete="current-password" />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <small class="field__error">أدخل كلمة المرور</small>
+        }
+      </label>
+
+      @if (error(); as error) {
+        <div class="alert alert--error">{{ error }}</div>
+      }
+
+      <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
+        {{ submitting() ? 'جارٍ الدخول...' : 'دخول' }}
+      </button>
+    </form>
+  </section>
+</div>

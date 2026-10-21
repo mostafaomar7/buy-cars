@@ -1,0 +1,66 @@
+<header class="page-header">
+  <div>
+    <h1>طلبات الانضمام</h1>
+    <p class="muted">مراجعة طلبات التسجيل الجديدة وقبولها أو رفضها</p>
+  </div>
+</header>
+
+<section class="card">
+  <div class="toolbar">
+    <app-filter-tabs [options]="tabs" [value]="status()" (valueChange)="setStatus($event)" />
+    <app-search-box placeholder="بحث بالاسم أو البريد أو الهوية أو الجوال" (search)="setSearch($event)" />
+  </div>
+
+  @if (list.error(); as error) {
+    <div class="alert alert--error">
+      {{ error }}
+      <button type="button" class="btn btn--ghost btn--sm" (click)="list.reload()">إعادة المحاولة</button>
+    </div>
+  }
+
+  <div class="table-wrap" [class.is-loading]="list.loading()">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>مقدم الطلب</th>
+          <th>رقم الهوية</th>
+          <th>الجوال</th>
+          <th>تاريخ الطلب</th>
+          <th>الحالة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (request of list.items(); track request.id) {
+          <tr class="table__link" [routerLink]="['/requests', request.id]">
+            <td>
+              <div class="person">
+                <app-avatar [src]="request.user.photoUrl" [name]="request.user.fullName" />
+                <div>
+                  <strong>{{ request.user.fullName }}</strong>
+                  <span class="muted" dir="ltr">{{ request.user.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="mono">{{ request.user.nationalId }}</td>
+            <td class="mono" dir="ltr">{{ request.user.phone ?? '—' }}</td>
+            <td>{{ request.createdAt | riyadhDate }}</td>
+            <td>
+              <app-status-badge [status]="request.status" />
+              @if (request.autoApproved) {
+                <span class="tag">تلقائي</span>
+              }
+            </td>
+            <td class="table__chevron"><app-icon name="chevron" /></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty">{{ list.loading() ? 'جارٍ التحميل...' : 'لا توجد طلبات' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination [pagination]="list.pagination()" (pageChange)="list.load($event)" />
+</section>

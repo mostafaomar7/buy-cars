@@ -1,0 +1,32 @@
+// ألوان الهوية مأخوذة من أيقونة تطبيق توكلنا.
+:root {
+  --green-50: #e9f7ef;
+  --green-100: #cdeedb;
+  --green-500: #1aaa5b;
+  --green-600: #16924e;
+  --green-700: #1b7a5f;
+  --green-900: #114b47;
+  --green-950: #0b3532;
+
+  --bg: #f0f1f2;
+  --surface: #ffffff;
+  --surface-muted: #f7f8f8;
+  --border: #e3e6e8;
+  --text: #17302e;
+  --muted: #6b7a79;
+
+  --warn: #a8670a;
+  --warn-bg: #fdf3df;
+  --danger: #c93b3b;
+  --danger-bg: #fdecec;
+  --info: #1b7a5f;
+  --neutral-bg: #eceeef;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 1px 2px rgb(17 75 71 / 0.05), 0 6px 20px rgb(17 75 71 / 0.06);
+  --shadow-lg: 0 12px 40px rgb(17 75 71 / 0.18);
+  --sidebar-width: 260px;
+
+  --font: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+}
