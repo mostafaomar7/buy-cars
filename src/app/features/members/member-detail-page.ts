@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { Observable, filter, finalize } from 'rxjs';
 import { AdminApi } from '../../core/admin-api.service';
 import { errorMessage } from '../../core/api-error';
+import { AuthService } from '../../core/auth.service';
 import { LiveEventsService } from '../../core/live-events.service';
 import { MemberDetails } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
@@ -38,6 +39,7 @@ const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 export class MemberDetailPage implements OnInit {
   private readonly api = inject(AdminApi);
   private readonly toast = inject(ToastService);
+  protected readonly can = inject(AuthService).can;
 
   /** من الرابط `/members/:id` */
   readonly id = input.required<string>();

@@ -12,8 +12,14 @@ import {
   PreapprovedInput,
   PreapprovedResult,
   RequestStatus,
+  RoleCatalog,
   Session,
+  Staff,
+  StaffInput,
+  StaffRole,
+  StaffStatus,
   Stats,
+  TemporaryPassword,
   User,
 } from './models';
 
@@ -111,6 +117,36 @@ export class AdminApi {
 
   deletePreapproved(id: string) {
     return this.api.delete<unknown>(`/admin/preapproved/${id}`);
+  }
+
+  // ---- الموظفون والأدوار ----
+
+  roles() {
+    return this.api.get<RoleCatalog>('/admin/roles');
+  }
+
+  listStaff(query: ListQuery & { role?: StaffRole | ''; status?: StaffStatus | '' }) {
+    return this.api.get<Page<Staff>>('/admin/staff', { ...query });
+  }
+
+  createStaff(input: StaffInput) {
+    return this.api.post<TemporaryPassword & { staff: Staff }>('/admin/staff', input);
+  }
+
+  /** تغيير الدور يُخرج الموظف من كل أجهزته (`revokedSessions`). */
+  updateStaff(id: string, changes: Partial<StaffInput>) {
+    return this.api.patch<{ revokedSessions?: number }>(`/admin/staff/${id}`, changes);
+  }
+
+  changeStaffStatus(id: string, status: StaffStatus, reason?: string) {
+    return this.api.patch<{ revokedSessions?: number }>(`/admin/staff/${id}/status`, {
+      status,
+      ...withReason(reason),
+    });
+  }
+
+  resetStaffPassword(id: string) {
+    return this.api.post<TemporaryPassword>(`/admin/staff/${id}/reset-password`);
   }
 
   // ---- سجل العمليات ----

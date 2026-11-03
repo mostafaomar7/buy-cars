@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { filter, finalize } from 'rxjs';
 import { AdminApi } from '../../core/admin-api.service';
 import { errorCode, errorMessage } from '../../core/api-error';
+import { AuthService } from '../../core/auth.service';
 import { LiveEventsService } from '../../core/live-events.service';
 import { AccessRequest } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
@@ -26,6 +27,7 @@ type Decision = 'approve' | 'reject';
 export class RequestDetailPage implements OnInit {
   private readonly api = inject(AdminApi);
   private readonly toast = inject(ToastService);
+  protected readonly can = inject(AuthService).can;
 
   /** من الرابط `/requests/:id` */
   readonly id = input.required<string>();

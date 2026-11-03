@@ -4,11 +4,11 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { errorMessage } from '../../core/api-error';
 import { AuthService } from '../../core/auth.service';
-import { BrandMark } from '../../shared/ui/brand-mark';
+import { Logo } from '../../shared/ui/logo';
 
 @Component({
   selector: 'app-login-page',
-  imports: [ReactiveFormsModule, BrandMark],
+  imports: [ReactiveFormsModule, Logo],
   templateUrl: './login-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -16,6 +16,8 @@ export class LoginPage {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  /** سبب إنهاء الجلسة السابقة إن وُجد. */
+  protected readonly notice = this.auth.notice;
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly form = inject(NonNullableFormBuilder).group({

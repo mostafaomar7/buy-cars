@@ -3,6 +3,22 @@ export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
 export type Gender = 'MALE' | 'FEMALE';
 export type MaritalStatus = 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
 export type Platform = 'android' | 'ios' | 'web';
+export type StaffRole = 'SUPER_ADMIN' | 'ADMIN' | 'REVIEWER' | 'VIEWER';
+export type Role = 'USER' | StaffRole;
+export type StaffStatus = 'ACCEPTED' | 'SUSPENDED';
+
+export type Permission =
+  | 'dashboard.view'
+  | 'requests.view'
+  | 'requests.review'
+  | 'members.view'
+  | 'members.edit'
+  | 'members.status'
+  | 'members.sessions'
+  | 'preapproved.view'
+  | 'preapproved.manage'
+  | 'audit.view'
+  | 'staff.manage';
 
 export interface ApiSuccess<T> {
   success: true;
@@ -37,7 +53,7 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
-  role: 'ADMIN' | 'USER';
+  role: Role;
   membershipStatus: MembershipStatus;
   statusReason: string | null;
   nationalId: string;
@@ -54,8 +70,14 @@ export interface User {
   updatedAt: string;
 }
 
+/** المستخدم الحالي في الداشبورد (من الدخول أو `/auth/me`). */
+export interface CurrentUser extends User {
+  permissions: Permission[];
+  mustChangePassword: boolean;
+}
+
 export interface LoginResult {
-  user: User;
+  user: CurrentUser;
   session: { token: string; tokenType: 'Bearer'; expiresAt: string };
 }
 
@@ -135,6 +157,45 @@ export interface PreapprovedResult {
   entry: Preapproved;
   matchedUserId: string | null;
   autoApproved: boolean;
+}
+
+export interface RoleInfo {
+  key: StaffRole;
+  label: string;
+  rank: number;
+  permissions: Permission[];
+  assignable: boolean;
+}
+
+export interface RoleCatalog {
+  roles: RoleInfo[];
+  permissions: { key: Permission; label: string }[];
+}
+
+export interface Staff {
+  id: string;
+  fullName: string;
+  email: string;
+  role: StaffRole;
+  roleLabel: string;
+  status: StaffStatus;
+  statusReason: string | null;
+  mustChangePassword: boolean;
+  /** `false` لحسابك أنت أو لرتبة أعلى أو مساوية. */
+  manageable: boolean;
+  createdAt: string;
+}
+
+export interface StaffInput {
+  fullName: string;
+  email: string;
+  role: StaffRole;
+}
+
+/** كلمة المرور المؤقتة تُرجع مرة واحدة فقط. */
+export interface TemporaryPassword {
+  temporaryPassword: string;
+  revokedSessions?: number;
 }
 
 export interface AuditLog {

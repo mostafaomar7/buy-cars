@@ -2,7 +2,9 @@ import { Injectable, inject, signal } from '@angular/core';
 import { EventSourceMessage, fetchEventSource } from '@microsoft/fetch-event-source';
 import { Observable, Subject, filter } from 'rxjs';
 import { API_URL } from './api.service';
+import { sessionEndedMessage } from './api-error';
 import { AuthService } from './auth.service';
+import { ApiErrorBody } from './models';
 
 export type LiveEventType =
   | 'ready'
@@ -11,7 +13,10 @@ export type LiveEventType =
   | 'access_request.decided'
   | 'member.status_changed'
   | 'member.updated'
-  | 'session.revoked';
+  | 'session.revoked'
+  | 'staff.created'
+  | 'staff.updated'
+  | 'staff.status_changed';
 
 export interface LiveEvent {
   type: LiveEventType;
@@ -25,11 +30,17 @@ export type LiveStatus = 'off' | 'connecting' | 'live';
 const RETRY_MS = 5000;
 const FEED_SIZE = 30;
 
-class UnauthorizedError extends Error {}
+/** خطأ يوقف إعادة المحاولة (401/403). */
+class FatalError extends Error {
+  constructor(readonly status: number, readonly body: ApiErrorBody | null) {
+    super(`SSE ${status}`);
+  }
+}
 
 /**
  * الإشعارات اللحظية من `GET /admin/events` (SSE).
  * EventSource الأصلي لا يدعم الهيدرز، لذلك نستخدم fetch-event-source.
+ * الخادم يرسل لكل موظف الأحداث المسموح له بها فقط، والاتصال يحتاج `dashboard.view`.
  */
 @Injectable({ providedIn: 'root' })
 export class LiveEventsService {
@@ -48,7 +59,7 @@ export class LiveEventsService {
 
   connect(): void {
     const token = this.auth.token();
-    if (!token || this.controller) return;
+    if (!token || this.controller || !this.auth.can('dashboard.view')) return;
 
     const controller = new AbortController();
     this.controller = controller;
@@ -59,7 +70,9 @@ export class LiveEventsService {
       signal: controller.signal,
       openWhenHidden: true,
       onopen: async (res) => {
-        if (res.status === 401 || res.status === 403) throw new UnauthorizedError();
+        if (res.status === 401 || res.status === 403) {
+          throw new FatalError(res.status, await res.json().catch(() => null));
+        }
         if (!res.ok) throw new Error(`SSE ${res.status}`);
         this.status.set('live');
       },
@@ -68,9 +81,9 @@ export class LiveEventsService {
         throw new Error('closed'); // أعد الاتصال
       },
       onerror: (err) => {
-        if (err instanceof UnauthorizedError) {
+        if (err instanceof FatalError) {
           this.disconnect();
-          this.auth.clearSession();
+          this.handleFatal(err);
           throw err; // يوقف إعادة المحاولة
         }
         this.status.set('connecting');
@@ -89,6 +102,11 @@ export class LiveEventsService {
 
   markRead(): void {
     this.unread.set(0);
+  }
+
+  private handleFatal({ status, body }: FatalError): void {
+    if (status === 401) this.auth.clearSession(sessionEndedMessage(body?.error));
+    if (body?.error.code === 'PASSWORD_CHANGE_REQUIRED') this.auth.requirePasswordChange();
   }
 
   private handle(message: EventSourceMessage): void {

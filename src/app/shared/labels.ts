@@ -1,5 +1,14 @@
 import { LiveEvent } from '../core/live-events.service';
-import { AuditLog, Gender, MaritalStatus, MemberField, MembershipStatus, Platform } from '../core/models';
+import {
+  AuditLog,
+  Gender,
+  MaritalStatus,
+  MemberField,
+  MembershipStatus,
+  Platform,
+  StaffRole,
+  StaffStatus,
+} from '../core/models';
 
 export interface Option<T extends string = string> {
   value: T;
@@ -10,6 +19,19 @@ export const STATUS_LABELS: Record<MembershipStatus, string> = {
   PENDING: 'قيد المراجعة',
   ACCEPTED: 'مقبول',
   REJECTED: 'مرفوض',
+  SUSPENDED: 'موقوف',
+};
+
+/** للعرض فقط؛ صفحة الموظفين تستخدم المسميات القادمة من `/admin/roles`. */
+export const ROLE_LABELS: Record<StaffRole, string> = {
+  SUPER_ADMIN: 'مدير النظام',
+  ADMIN: 'مشرف',
+  REVIEWER: 'مراجع',
+  VIEWER: 'مشاهد',
+};
+
+export const STAFF_STATUS_LABELS: Record<StaffStatus, string> = {
+  ACCEPTED: 'نشط',
   SUSPENDED: 'موقوف',
 };
 
@@ -85,6 +107,12 @@ export function describeEvent({ type, data }: LiveEvent): string {
       return 'تم تعديل بيانات عضو';
     case 'session.revoked':
       return `تم إنهاء ${data['revokedSessions'] ?? 1} جلسة لعضو`;
+    case 'staff.created':
+      return `تمت إضافة موظف${data['fullName'] ? `: ${data['fullName']}` : ''}`;
+    case 'staff.updated':
+      return `تم تعديل بيانات موظف${data['fullName'] ? `: ${data['fullName']}` : ''}`;
+    case 'staff.status_changed':
+      return data['to'] === 'SUSPENDED' || data['status'] === 'SUSPENDED' ? 'تم إيقاف موظف' : 'تم تفعيل موظف';
     default:
       return 'تم الاتصال بالإشعارات اللحظية';
   }

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdminApi } from '../../core/admin-api.service';
+import { AuthService } from '../../core/auth.service';
 import { AuditLog } from '../../core/models';
 import { AUDIT_ACTION_LABELS, describeAudit } from '../../shared/labels';
 import { PagedList } from '../../shared/paged-list';
@@ -15,6 +16,7 @@ import { PaginationBar } from '../../shared/ui/pagination';
 })
 export class AuditLogsPage {
   private readonly api = inject(AdminApi);
+  protected readonly can = inject(AuthService).can;
 
   /** من `?targetUserId=` (رابط "سجل العمليات" في صفحة العضو) */
   readonly targetUserId = input<string>();

@@ -29,7 +29,7 @@
       }
 
       <div class="profile__actions">
-        @if (r.status === 'PENDING') {
+        @if (r.status === 'PENDING' && can('requests.review')) {
           <button type="button" class="btn btn--primary" (click)="open('approve')">
             <app-icon name="check" /> قبول
           </button>
@@ -37,7 +37,9 @@
             <app-icon name="close" /> رفض
           </button>
         }
-        <a class="btn btn--ghost" [routerLink]="['/members', r.user.id]">صفحة العضو</a>
+        @if (can('members.view')) {
+          <a class="btn btn--ghost" [routerLink]="['/members', r.user.id]">صفحة العضو</a>
+        }
       </div>
     </div>
   </section>

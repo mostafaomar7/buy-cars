@@ -1,0 +1,58 @@
+<app-modal [title]="staff() ? 'تعديل موظف' : 'إضافة موظف'" (closed)="closed.emit()">
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+    <label class="field">
+      <span>الاسم الكامل</span>
+      <input class="input" formControlName="fullName" />
+      @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+        <small class="field__error">الاسم مطلوب</small>
+      }
+    </label>
+
+    <label class="field">
+      <span>البريد الإلكتروني</span>
+      <input class="input" type="email" dir="ltr" formControlName="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small class="field__error">أدخل بريدًا صحيحًا</small>
+      }
+    </label>
+
+    <label class="field">
+      <span>الدور</span>
+      <select class="input" formControlName="role">
+        <option value="" disabled>اختر الدور</option>
+        @for (role of roles(); track role.key) {
+          <option [value]="role.key">{{ role.label }}</option>
+        }
+      </select>
+      @if (form.controls.role.touched && form.controls.role.invalid) {
+        <small class="field__error">اختر الدور</small>
+      }
+    </label>
+
+    @if (selectedPermissions().length) {
+      <div class="permission-list">
+        <small class="muted">صلاحيات هذا الدور:</small>
+        <div>
+          @for (label of selectedPermissions(); track label) {
+            <span class="tag">{{ label }}</span>
+          }
+        </div>
+      </div>
+    }
+
+    @if (!staff()) {
+      <p class="muted">سيتم إنشاء كلمة مرور مؤقتة تظهر لك مرة واحدة بعد الحفظ.</p>
+    }
+
+    @if (error(); as error) {
+      <div class="alert alert--error">{{ error }}</div>
+    }
+
+    <div class="form__actions">
+      <button type="submit" class="btn btn--primary" [disabled]="saving()">
+        {{ saving() ? 'جارٍ الحفظ...' : staff() ? 'حفظ التعديلات' : 'إضافة' }}
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="closed.emit()">إلغاء</button>
+    </div>
+  </form>
+</app-modal>

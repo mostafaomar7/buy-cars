@@ -51,7 +51,11 @@
             <td>{{ log.actorAdmin?.fullName ?? 'النظام' }}</td>
             <td>
               @if (log.targetUser; as target) {
-                <a [routerLink]="['/members', target.id]">{{ target.fullName }}</a>
+                @if (can('members.view')) {
+                  <a [routerLink]="['/members', target.id]">{{ target.fullName }}</a>
+                } @else {
+                  {{ target.fullName }}
+                }
               } @else {
                 —
               }

@@ -10,19 +10,21 @@
   <section class="card profile">
     <div class="profile__photo">
       <app-avatar [src]="m.photoUrl" [name]="m.fullName" [size]="96" />
-      <div class="profile__photo-actions">
-        <label class="btn btn--ghost btn--sm" [class.is-disabled]="photoBusy()">
-          <app-icon name="camera" /> {{ m.photoUrl ? 'تغيير' : 'رفع صورة' }}
-          <input type="file" accept="image/jpeg,image/png,image/webp" hidden
-                 [disabled]="photoBusy()" (change)="onPhotoSelected($event)" />
-        </label>
-        @if (m.photoUrl) {
-          <button type="button" class="btn btn--ghost btn--sm text-danger" [disabled]="photoBusy()"
-                  (click)="deletePhoto()">
-            <app-icon name="trash" /> حذف
-          </button>
-        }
-      </div>
+      @if (can('members.edit')) {
+        <div class="profile__photo-actions">
+          <label class="btn btn--ghost btn--sm" [class.is-disabled]="photoBusy()">
+            <app-icon name="camera" /> {{ m.photoUrl ? 'تغيير' : 'رفع صورة' }}
+            <input type="file" accept="image/jpeg,image/png,image/webp" hidden
+                   [disabled]="photoBusy()" (change)="onPhotoSelected($event)" />
+          </label>
+          @if (m.photoUrl) {
+            <button type="button" class="btn btn--ghost btn--sm text-danger" [disabled]="photoBusy()"
+                    (click)="deletePhoto()">
+              <app-icon name="trash" /> حذف
+            </button>
+          }
+        </div>
+      }
     </div>
 
     <div class="profile__main">
@@ -36,13 +38,19 @@
       }
 
       <div class="profile__actions">
-        <button type="button" class="btn btn--primary" [disabled]="editing()" (click)="editing.set(true)">
-          <app-icon name="edit" /> تعديل البيانات
-        </button>
-        <button type="button" class="btn btn--outline" (click)="statusDialogOpen.set(true)">تغيير الحالة</button>
-        <a class="btn btn--ghost" routerLink="/audit-logs" [queryParams]="{ targetUserId: m.id }">
-          <app-icon name="history" /> سجل العمليات
-        </a>
+        @if (can('members.edit')) {
+          <button type="button" class="btn btn--primary" [disabled]="editing()" (click)="editing.set(true)">
+            <app-icon name="edit" /> تعديل البيانات
+          </button>
+        }
+        @if (can('members.status')) {
+          <button type="button" class="btn btn--outline" (click)="statusDialogOpen.set(true)">تغيير الحالة</button>
+        }
+        @if (can('audit.view')) {
+          <a class="btn btn--ghost" routerLink="/audit-logs" [queryParams]="{ targetUserId: m.id }">
+            <app-icon name="history" /> سجل العمليات
+          </a>
+        }
       </div>
     </div>
   </section>
@@ -56,7 +64,9 @@
     }
   </section>
 
-  <app-member-sessions [userId]="m.id" (changed)="load()" />
+  @if (can('members.sessions')) {
+    <app-member-sessions [userId]="m.id" (changed)="load()" />
+  }
 
   <section class="card">
     <h2 class="card__title">سجل طلبات الانضمام</h2>

@@ -1,0 +1,112 @@
+<header class="page-header">
+  <div>
+    <h1>الموظفون</h1>
+    <p class="muted">حسابات لوحة التحكم وأدوارها</p>
+  </div>
+  <button type="button" class="btn btn--primary" [disabled]="!catalog()" (click)="formTarget.set(null)">
+    <app-icon name="plus" /> إضافة موظف
+  </button>
+</header>
+
+<section class="card">
+  <div class="toolbar">
+    <app-filter-tabs [options]="tabs" [value]="status()" (valueChange)="setStatus($event)" />
+    <div class="toolbar__group">
+      <select class="input input--auto" aria-label="الدور" [value]="role()" (change)="setRole($any($event.target).value)">
+        <option value="">كل الأدوار</option>
+        @for (option of catalog()?.roles ?? []; track option.key) {
+          <option [value]="option.key">{{ option.label }}</option>
+        }
+      </select>
+      <app-search-box placeholder="بحث بالاسم أو البريد" (search)="setSearch($event)" />
+    </div>
+  </div>
+
+  @if (list.error(); as error) {
+    <div class="alert alert--error">
+      {{ error }}
+      <button type="button" class="btn btn--ghost btn--sm" (click)="list.reload()">إعادة المحاولة</button>
+    </div>
+  }
+
+  <div class="table-wrap" [class.is-loading]="list.loading()">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>الموظف</th>
+          <th>الدور</th>
+          <th>الحالة</th>
+          <th>تاريخ الإضافة</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (staff of list.items(); track staff.id) {
+          <tr>
+            <td>
+              <div class="person">
+                <div>
+                  <strong>
+                    {{ staff.fullName }}
+                    @if (staff.id === currentUserId()) {
+                      <span class="tag">أنت</span>
+                    }
+                  </strong>
+                  <span class="muted" dir="ltr">{{ staff.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="tag">{{ staff.roleLabel }}</span></td>
+            <td>
+              <span [class]="staff.status === 'ACCEPTED' ? 'badge badge--accepted' : 'badge badge--suspended'"
+                    [title]="staff.statusReason ?? ''">
+                {{ statusLabels[staff.status] }}
+              </span>
+              @if (staff.mustChangePassword) {
+                <span class="badge badge--pending">لم يفعّل الحساب بعد</span>
+              }
+            </td>
+            <td>{{ staff.createdAt | riyadhDate: 'date' }}</td>
+            <td class="table__actions">
+              @if (staff.manageable) {
+                <button type="button" class="icon-btn" title="تعديل" aria-label="تعديل" [disabled]="!catalog()"
+                        (click)="formTarget.set(staff)">
+                  <app-icon name="edit" />
+                </button>
+                <button type="button" class="icon-btn" title="إعادة تعيين كلمة المرور" aria-label="إعادة تعيين كلمة المرور"
+                        [disabled]="busyId() === staff.id" (click)="resetPassword(staff)">
+                  <app-icon name="key" />
+                </button>
+                <button type="button"
+                        [class]="staff.status === 'ACCEPTED' ? 'btn btn--sm btn--ghost text-danger' : 'btn btn--sm btn--outline'"
+                        (click)="statusTarget.set(staff)">
+                  {{ staff.status === 'ACCEPTED' ? 'إيقاف' : 'تفعيل' }}
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty">{{ list.loading() ? 'جارٍ التحميل...' : 'لا يوجد موظفون' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination [pagination]="list.pagination()" (pageChange)="list.load($event)" />
+</section>
+
+@if (formTarget() !== undefined && catalog(); as catalog) {
+  <app-staff-form [staff]="formTarget() ?? null" [catalog]="catalog" (created)="onCreated($event)"
+                  (updated)="onUpdated()" (closed)="formTarget.set(undefined)" />
+}
+
+@if (statusTarget(); as staff) {
+  <app-staff-status-dialog [staff]="staff" (changed)="onStatusChanged()" (closed)="statusTarget.set(null)" />
+}
+
+@if (issuedPassword(); as issued) {
+  <app-temporary-password-dialog [staffName]="issued.staffName" [password]="issued.password"
+                                 (closed)="issuedPassword.set(null)" />
+}

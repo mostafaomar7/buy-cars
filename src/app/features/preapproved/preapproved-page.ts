@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { AdminApi } from '../../core/admin-api.service';
 import { errorMessage } from '../../core/api-error';
+import { AuthService } from '../../core/auth.service';
 import { Preapproved } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { Option } from '../../shared/labels';
@@ -27,6 +28,7 @@ type FormTarget = Preapproved | null | undefined;
 export class PreapprovedPage {
   private readonly api = inject(AdminApi);
   private readonly toast = inject(ToastService);
+  protected readonly can = inject(AuthService).can;
 
   protected readonly tabs: Option<ConsumedFilter>[] = [
     { value: 'open', label: 'لم يسجلوا بعد' },

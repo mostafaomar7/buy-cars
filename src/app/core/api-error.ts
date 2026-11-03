@@ -9,7 +9,7 @@ export class AppError extends Error {
 }
 
 const MESSAGES: Record<string, string> = {
-  NOT_ADMIN: 'لا تملك صلاحية الدخول إلى لوحة التحكم',
+  NOT_ADMIN: 'هذا الحساب ليس حساب موظف، ولا يمكنه الدخول إلى لوحة التحكم',
   ADMIN_REQUIRED: 'لا تملك صلاحية الدخول إلى لوحة التحكم',
   INVALID_CREDENTIALS: 'بيانات الدخول غير صحيحة',
   AUTHENTICATION_REQUIRED: 'انتهت الجلسة، سجّل الدخول من جديد',
@@ -33,12 +33,33 @@ const MESSAGES: Record<string, string> = {
   INVALID_IMAGE: 'الصورة غير صالحة (JPEG أو PNG أو WebP فقط)',
   PHOTO_REQUIRED: 'اختر صورة أولًا',
   RATE_LIMITED: 'محاولات كثيرة، حاول بعد قليل',
+  PERMISSION_DENIED: 'لا تملك صلاحية لهذا الإجراء',
+  PASSWORD_CHANGE_REQUIRED: 'يجب تغيير كلمة المرور أولًا',
+  ROLE_NOT_ASSIGNABLE: 'لا يمكنك منح هذا الدور',
+  STAFF_NOT_MANAGEABLE: 'لا يمكنك تعديل هذا الحساب',
+  CANNOT_MODIFY_SELF: 'لا يمكنك تعديل حسابك من هنا',
+  STAFF_NOT_FOUND: 'الموظف غير موجود',
 };
 
+/** سبب إنهاء الجلسة (`401 SESSION_REVOKED` → `details.reason`). */
+const SESSION_END_MESSAGES: Record<string, string> = {
+  ROLE_CHANGED: 'تم تغيير صلاحياتك، سجّل الدخول مرة أخرى',
+  STAFF_SUSPENDED: 'تم إيقاف حسابك، تواصل مع مدير النظام',
+  PASSWORD_RESET: 'تمت إعادة تعيين كلمة المرور، سجّل الدخول بكلمة المرور الجديدة',
+};
+
+export function errorBody(err: unknown): ApiErrorBody['error'] | undefined {
+  return err instanceof HttpErrorResponse ? (err.error as ApiErrorBody | null)?.error : undefined;
+}
+
+/** رسالة صفحة الدخول بعد انتهاء الجلسة من الخادم. */
+export function sessionEndedMessage(error?: ApiErrorBody['error']): string {
+  const reason = (error?.details as { reason?: string } | undefined)?.reason;
+  return (reason && SESSION_END_MESSAGES[reason]) ?? MESSAGES['SESSION_EXPIRED'];
+}
+
 export function errorCode(err: unknown): string | undefined {
-  if (err instanceof AppError) return err.code;
-  if (err instanceof HttpErrorResponse) return (err.error as ApiErrorBody | null)?.error?.code;
-  return undefined;
+  return err instanceof AppError ? err.code : errorBody(err)?.code;
 }
 
 export function errorMessage(err: unknown): string {
@@ -46,7 +67,7 @@ export function errorMessage(err: unknown): string {
   if (!(err instanceof HttpErrorResponse)) return 'حدث خطأ غير متوقع';
   if (err.status === 0) return 'تعذّر الاتصال بالخادم، تأكد من عنوان الباك إند وإعدادات CORS';
 
-  const error = (err.error as ApiErrorBody | null)?.error;
+  const error = errorBody(err);
   if (!error) return `خطأ من الخادم (${err.status})`;
 
   if (error.code === 'VALIDATION_ERROR' && Array.isArray(error.details)) {

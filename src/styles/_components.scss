@@ -250,6 +250,10 @@
   span {
     font-size: 0.82rem;
   }
+
+  .tag {
+    display: inline-flex;
+  }
 }
 
 .device-icon {
@@ -530,6 +534,12 @@ textarea.input {
     background: var(--danger-bg);
   }
 
+  &--info {
+    justify-content: flex-start;
+    color: var(--green-900);
+    background: var(--green-50);
+  }
+
   &--warn {
     justify-content: flex-start;
     align-items: flex-start;
@@ -734,5 +744,91 @@ textarea.input {
     span {
       font-size: 0.82rem;
     }
+  }
+}
+
+// ---- Logo ----
+
+.logo {
+  display: inline-flex;
+  flex-shrink: 0;
+
+  &--light svg {
+    filter: brightness(0) invert(1);
+  }
+}
+
+// ---- Staff ----
+
+.toolbar__group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.input--auto {
+  width: auto;
+}
+
+.secret {
+  display: flex;
+  gap: 8px;
+
+  .input {
+    flex: 1;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+  }
+}
+
+.permission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .tag {
+    margin: 0 0 6px 6px;
+  }
+}
+
+// ---- Centered pages (forced password change, no access) ----
+
+.center-page {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 32px 16px;
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(440px, 100%);
+    padding: 32px;
+    background: var(--surface);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+
+    h1 {
+      font-size: 1.4rem;
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 20px;
+  text-align: center;
+
+  > .icon {
+    width: 40px;
+    height: 40px;
+    color: var(--green-700);
   }
 }

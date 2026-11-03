@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../core/auth.service';
 import { LiveEvent, LiveEventsService } from '../core/live-events.service';
 import { describeEvent } from '../shared/labels';
 import { RiyadhDatePipe } from '../shared/riyadh-date.pipe';
@@ -24,12 +25,16 @@ import { RiyadhDatePipe } from '../shared/riyadh-date.pipe';
 })
 export class LiveFeed {
   protected readonly live = inject(LiveEventsService);
+  private readonly can = inject(AuthService).can;
   protected readonly describe = describeEvent;
 
-  protected link(event: LiveEvent): string[] | null {
-    if (event.type === 'access_request.created' && !event.data['autoApproved']) {
-      return ['/requests', event.data['requestId']];
+  /** رابط الحدث، فقط لو الموظف يملك صلاحية الصفحة. */
+  protected link({ type, data }: LiveEvent): string[] | null {
+    if (type.startsWith('staff.')) return this.can('staff.manage') ? ['/staff'] : null;
+    if (type === 'access_request.created' && !data['autoApproved']) {
+      return this.can('requests.view') ? ['/requests', data['requestId']] : null;
     }
-    return event.data['userId'] && event.data['role'] !== 'ADMIN' ? ['/members', event.data['userId']] : null;
+    const isMember = data['userId'] && (data['role'] ?? 'USER') === 'USER';
+    return isMember && this.can('members.view') ? ['/members', data['userId']] : null;
   }
 }

@@ -1,15 +1,15 @@
 <div class="shell" [class.shell--nav-open]="navOpen()">
   <aside class="sidebar">
     <div class="sidebar__brand">
-      <app-brand-mark [size]="40" />
+      <app-logo tone="light" [height]="40" />
       <div>
-        <strong>لوحة الإدارة</strong>
+        <strong>لوحة ادارة تركلنا</strong>
         <span>إدارة العضويات</span>
       </div>
     </div>
 
     <nav class="sidebar__nav">
-      @for (item of nav; track item.path) {
+      @for (item of nav(); track item.path) {
         <a [routerLink]="item.path" routerLinkActive="is-active"
            [routerLinkActiveOptions]="{ exact: item.exact ?? false }" (click)="navOpen.set(false)">
           <app-icon [name]="item.icon" />
@@ -26,7 +26,7 @@
         <app-avatar [src]="user.photoUrl" [name]="user.fullName" [size]="36" />
         <div>
           <strong>{{ user.fullName }}</strong>
-          <span dir="ltr">{{ user.email }}</span>
+          <span>{{ roleLabel() }}</span>
         </div>
       </div>
     }
@@ -39,26 +39,30 @@
         <app-icon name="menu" />
       </button>
 
-      <span class="live-status" [attr.data-status]="live.status()">
-        <span class="live-status__dot"></span>{{ liveLabel() }}
-      </span>
+      @if (can('dashboard.view')) {
+        <span class="live-status" [attr.data-status]="live.status()">
+          <span class="live-status__dot"></span>{{ liveLabel() }}
+        </span>
+      }
 
       <span class="topbar__spacer"></span>
 
-      <div class="dropdown-anchor">
-        <button type="button" class="icon-btn" aria-label="الإشعارات" (click)="toggleFeed()">
-          <app-icon name="bell" />
-          @if (live.unread()) {
-            <span class="icon-btn__badge">{{ live.unread() }}</span>
+      @if (can('dashboard.view')) {
+        <div class="dropdown-anchor">
+          <button type="button" class="icon-btn" aria-label="الإشعارات" (click)="toggleFeed()">
+            <app-icon name="bell" />
+            @if (live.unread()) {
+              <span class="icon-btn__badge">{{ live.unread() }}</span>
+            }
+          </button>
+          @if (feedOpen()) {
+            <div class="dropdown" (click)="feedOpen.set(false)">
+              <h3 class="dropdown__title">الإشعارات اللحظية</h3>
+              <app-live-feed />
+            </div>
           }
-        </button>
-        @if (feedOpen()) {
-          <div class="dropdown" (click)="feedOpen.set(false)">
-            <h3 class="dropdown__title">الإشعارات اللحظية</h3>
-            <app-live-feed />
-          </div>
-        }
-      </div>
+        </div>
+      }
 
       <button type="button" class="icon-btn" title="تغيير كلمة المرور" aria-label="تغيير كلمة المرور"
               (click)="passwordOpen.set(true)">

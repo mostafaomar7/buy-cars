@@ -6,7 +6,7 @@
       <span class="shape shape--c"></span>
     </div>
     <div class="login__brand-text">
-      <app-brand-mark [size]="56" />
+      <app-logo tone="light" [height]="64" />
       <h1>لوحة إدارة العضويات</h1>
       <p>مراجعة طلبات الانضمام، وإدارة الأعضاء والأجهزة، ومتابعة كل ما يحدث لحظة بلحظة.</p>
     </div>
@@ -15,7 +15,11 @@
   <section class="login__panel">
     <form class="login__form" [formGroup]="form" (ngSubmit)="submit()">
       <h2>تسجيل الدخول</h2>
-      <p class="muted">هذه اللوحة مخصصة لحسابات الإدارة فقط.</p>
+      <p class="muted">هذه اللوحة مخصصة لحسابات الموظفين فقط.</p>
+
+      @if (notice(); as notice) {
+        <div class="alert alert--info">{{ notice }}</div>
+      }
 
       <label class="field">
         <span>البريد الإلكتروني</span>

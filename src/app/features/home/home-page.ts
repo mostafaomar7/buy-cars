@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AdminApi } from '../../core/admin-api.service';
+import { AuthService } from '../../core/auth.service';
 import { LiveEventsService } from '../../core/live-events.service';
-import { AccessRequest } from '../../core/models';
+import { AccessRequest, Permission } from '../../core/models';
 import { StatsStore } from '../../core/stats.store';
 import { LiveFeed } from '../../layout/live-feed';
 import { PagedList } from '../../shared/paged-list';
@@ -27,6 +28,7 @@ export class HomePage {
   private readonly api = inject(AdminApi);
   private readonly statsStore = inject(StatsStore);
   private readonly stats = this.statsStore.stats;
+  protected readonly can = inject(AuthService).can;
 
   protected readonly pending = new PagedList<AccessRequest>((page) =>
     this.api.listRequests({ status: 'PENDING', page, limit: 5 }),
@@ -35,18 +37,31 @@ export class HomePage {
   protected readonly cards = computed<StatCard[]>(() => {
     const s = this.stats();
     if (!s) return [];
+    const linkIf = (permission: Permission, path: string) => (this.can(permission) ? path : undefined);
     return [
-      { label: 'طلبات بانتظار المراجعة', value: s.pendingRequests, tone: 'warn', link: '/requests' },
-      { label: 'إجمالي الأعضاء', value: s.members.total, tone: 'dark', link: '/members' },
+      {
+        label: 'طلبات بانتظار المراجعة',
+        value: s.pendingRequests,
+        tone: 'warn',
+        link: linkIf('requests.view', '/requests'),
+      },
+      { label: 'إجمالي الأعضاء', value: s.members.total, tone: 'dark', link: linkIf('members.view', '/members') },
       { label: 'أعضاء مقبولون', value: s.members.ACCEPTED, tone: 'green' },
       { label: 'أعضاء موقوفون', value: s.members.SUSPENDED, tone: 'danger' },
-      { label: 'معتمدون مسبقًا لم يسجلوا', value: s.preapprovedOpen, tone: 'mid', link: '/preapproved' },
+      {
+        label: 'معتمدون مسبقًا لم يسجلوا',
+        value: s.preapprovedOpen,
+        tone: 'mid',
+        link: linkIf('preapproved.view', '/preapproved'),
+      },
       { label: 'جلسات أعضاء نشطة', value: s.activeMemberSessions, tone: 'mid' },
     ];
   });
 
   constructor() {
     this.statsStore.refresh();
+    if (!this.can('requests.view')) return;
+
     this.pending.load();
     inject(LiveEventsService)
       .on('ready', 'access_request.created', 'access_request.decided', 'member.status_changed')
